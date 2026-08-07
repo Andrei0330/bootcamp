@@ -1,0 +1,6 @@
+ID,ticketNumber,subject,description,status,priority,category_ID,agent_ID
+t11,1001,Laptop not booting,Laptop shows black screen,OPEN,HIGH,1,aaa
+t22,1002,Email login issue,Unable to access Outlook account,IN_PROGRESS,MEDIUM,4,bbb
+t33,1003,VPN connection problem,VPN disconnects frequently,RESOLVED,HIGH,3,ccc
+t44,1004,Software installation request,Need SAP GUI installed,CLOSED,LOW,2,aaa
+t55,1005,Printer not working,Printer shows offline,OPEN,URGENT,1,bbb

@@ -1,0 +1,7 @@
+ID,text,ticket_ID
+c11,User reported issue this morning,t11
+c12,Agent requested screenshots,t11
+c21,Password reset attempted,t22
+c31,VPN settings updated,t33
+c32,Issue resolved after restart,t33
+c51,Technician assigned,t55
