@@ -1,0 +1,185 @@
+### Helpdesk Service HTTP Tests
+
+@host=http://localhost:4004
+@service={{host}}/odata/v4/catalog
+
+### UUIDs from CSV
+
+@ticketOpen=11111111-1111-1111-1111-111111111111
+@ticketInProgress=22222222-2222-2222-2222-222222222222
+@ticketResolved=33333333-3333-3333-3333-333333333333
+@ticketClosed=44444444-4444-4444-4444-444444444444
+
+@categoryHardware=aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+@categorySoftware=bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
+@categoryNetwork=cccccccc-cccc-cccc-cccc-cccccccccccc
+@categoryAccountAccess=dddddddd-dddd-dddd-dddd-dddddddddddd
+
+@agentJohn=11111111-aaaa-aaaa-aaaa-111111111111
+@agentSarah=22222222-bbbb-bbbb-bbbb-222222222222
+@agentMichael=33333333-cccc-cccc-cccc-333333333333
+
+############################################
+## Service
+############################################
+
+### Service Document
+GET {{service}}/
+
+### Metadata
+GET {{service}}/$metadata
+
+############################################
+## Read
+############################################
+
+### Categories
+GET {{service}}/Categories
+
+### Agents
+GET {{service}}/Agents
+
+### Comments
+GET {{service}}/Comments
+
+### Tickets
+GET {{service}}/Tickets
+
+### Single Ticket
+GET {{service}}/Tickets({{ticketOpen}})
+
+### Expanded Ticket
+GET {{service}}/Tickets({{ticketResolved}})?$expand=category,agent,comments
+
+### Open Tickets
+GET {{service}}/Tickets?$filter=status eq 'OPEN'
+
+### Closed Tickets
+GET {{service}}/Tickets?$filter=status eq 'CLOSED'
+
+############################################
+## Create
+############################################
+
+### Create Ticket
+# @name createTicket
+
+POST {{service}}/Tickets
+Content-Type: application/json
+
+{
+  "ticketNumber": 1006,
+  "subject": "Keyboard issue",
+  "description": "Keys are sticking",
+  "status": "OPEN",
+  "priority": "LOW",
+  "category_ID": "{{categoryHardware}}",
+  "agent_ID": "{{agentJohn}}"
+}
+
+### Missing Category
+POST {{service}}/Tickets
+Content-Type: application/json
+
+{
+  "subject": "Test Ticket"
+}
+
+### Missing Subject
+POST {{service}}/Tickets
+Content-Type: application/json
+
+{
+  "category_ID": "{{categoryHardware}}"
+}
+
+############################################
+## Update
+############################################
+
+### Update Priority
+PATCH {{service}}/Tickets({{ticketOpen}})
+Content-Type: application/json
+
+{
+  "priority": "URGENT"
+}
+
+### Reclose Closed Ticket
+PATCH {{service}}/Tickets({{ticketClosed}})
+Content-Type: application/json
+
+{
+  "status": "CLOSED"
+}
+
+############################################
+## closeTicket Action
+############################################
+
+### Close Open Ticket
+POST {{service}}/Tickets({{ticketOpen}})/Catalog.closeTicket
+Content-Type: application/json
+
+{
+  "resolution": "Password reset completed."
+}
+
+### Missing Resolution
+POST {{service}}/Tickets({{ticketInProgress}})/Catalog.closeTicket
+Content-Type: application/json
+
+{}
+
+### Already Closed
+POST {{service}}/Tickets({{ticketClosed}})/Catalog.closeTicket
+Content-Type: application/json
+
+{
+  "resolution": "Testing closed ticket"
+}
+
+############################################
+## reassignTicket Action
+############################################
+
+### Reassign to Sarah
+POST {{service}}/Tickets({{ticketInProgress}})/Catalog.reassignTicket
+Content-Type: application/json
+
+{
+  "agentID": "{{agentSarah}}"
+}
+
+### Reassign to Michael
+POST {{service}}/Tickets({{ticketInProgress}})/Catalog.reassignTicket
+Content-Type: application/json
+
+{
+  "agentID": "{{agentMichael}}"
+}
+
+### Missing agentID
+POST {{service}}/Tickets({{ticketInProgress}})/Catalog.reassignTicket
+Content-Type: application/json
+
+{}
+
+############################################
+## getTicketCount Function
+############################################
+
+### Count All Tickets
+GET {{service}}/getTicketCount()
+
+### Count OPEN
+GET {{service}}/getTicketCount(status='OPEN')
+
+### Count IN_PROGRESS
+GET {{service}}/getTicketCount(status='IN_PROGRESS')
+
+### Count RESOLVED
+GET {{service}}/getTicketCount(status='RESOLVED')
+
+### Count CLOSED
+GET {{service}}/getTicketCount(status='CLOSED')
