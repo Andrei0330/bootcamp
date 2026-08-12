@@ -1,56 +1,103 @@
 _schema-version: 3.3.0
 ID: IT_HelpDesk
+description: A simple CAP project.
 version: 1.0.0
-description: "A simple CAP project."
+modules:
+- name: IT_HelpDesk-srv
+  type: nodejs
+  path: gen/srv
+  requires:
+  - name: IT_HelpDesk-auth
+  - name: IT_HelpDesk-db
+  provides:
+  - name: srv-api
+    properties:
+      srv-url: ${default-url}
+  parameters:
+    buildpack: nodejs_buildpack
+    instances: 1
+  build-parameters:
+    builder: npm-ci
+- name: IT_HelpDesk-db-deployer
+  type: hdb
+  path: gen/db
+  requires:
+  - name: IT_HelpDesk-db
+  parameters:
+    buildpack: nodejs_buildpack
+- name: IT_HelpDesk-app-content
+  type: com.sap.application.content
+  path: .
+  requires:
+  - name: IT_HelpDesk-repo-host
+    parameters:
+      content-target: true
+  build-parameters:
+    build-result: resources
+    requires:
+    - artifacts:
+      - bootcamphelpdeskbootcamphelpdesklist.zip
+      name: bootcamphelpdeskbootcamphelpdesklist
+      target-path: resources/
+- name: bootcamphelpdeskbootcamphelpdesklist
+  type: html5
+  path: app/bootcamp-helpdesk-list
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
+resources:
+- name: IT_HelpDesk-auth
+  type: org.cloudfoundry.managed-service
+  parameters:
+    config:
+      oauth2-configuration:
+        credential-types:
+        - binding-secret
+        - x509
+      tenant-mode: dedicated
+      xsappname: IT_HelpDesk-${org}-${space}
+    path: ./xs-security.json
+    service: xsuaa
+    service-plan: application
+- name: IT_HelpDesk-db
+  type: com.sap.xs.hdi-container
+  parameters:
+    service: hana
+    service-plan: hdi-shared
+- name: IT_HelpDesk-repo-host
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-name: IT_HelpDesk-html5-service
+    service-plan: app-host
+- name: IT_HelpDesk-destination-service
+  type: org.cloudfoundry.managed-service
+  parameters:
+    config:
+      HTML5Runtime_enabled: false
+      init_data:
+        instance:
+          destinations:
+          - Authentication: NoAuthentication
+            Name: ui5
+            ProxyType: Internet
+            Type: HTTP
+            URL: https://ui5.sap.com
+          existing_destinations_policy: update
+      version: 1.0.0
+    service: destination
+    service-name: IT_HelpDesk-destination-service
+    service-plan: lite
 parameters:
+  deploy_mode: html5-repo
   enable-parallel-deployments: true
 build-parameters:
   before-all:
-    - builder: custom
-      commands:
-        - npm ci
-        - npx cds build --production
-modules:
-  - name: IT_HelpDesk-srv
-    type: nodejs
-    path: gen/srv
-    parameters:
-      instances: 1
-      buildpack: nodejs_buildpack
-    build-parameters:
-      builder: npm-ci
-    provides:
-      - name: srv-api # required by consumers of CAP services (e.g. approuter)
-        properties:
-          srv-url: ${default-url}
-    requires:
-      - name: IT_HelpDesk-auth
-      - name: IT_HelpDesk-db
-
-  - name: IT_HelpDesk-db-deployer
-    type: hdb
-    path: gen/db
-    parameters:
-      buildpack: nodejs_buildpack
-    requires:
-      - name: IT_HelpDesk-db
-
-resources:
-  - name: IT_HelpDesk-auth
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service: xsuaa
-      service-plan: application
-      path: ./xs-security.json
-      config:
-        xsappname: IT_HelpDesk-${org}-${space}
-        tenant-mode: dedicated
-        oauth2-configuration:
-          credential-types:
-            - "binding-secret"
-            - "x509"
-  - name: IT_HelpDesk-db
-    type: com.sap.xs.hdi-container
-    parameters:
-      service: hana
-      service-plan: hdi-shared
+  - builder: custom
+    commands:
+    - npm ci
+    - npx cds build --production
