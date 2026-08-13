@@ -42,7 +42,8 @@ entity Tickets : cuid, managed {
                 on comments.ticket = $self;
 };
 
-entity Comments : cuid, managed {
+
+ @readonly entity Comments : cuid, managed {
     text : String(255);
     ticket : Association to Tickets;
-}
+};
