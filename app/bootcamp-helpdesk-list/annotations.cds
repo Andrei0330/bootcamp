@@ -215,12 +215,12 @@ annotate service.Comments with @(
         },
         {
             $Type : 'UI.DataField',
-            Value : ticket.createdAt,
+            Value : ticket.comments.createdAt,
             Label : 'Created At',
         },
         {
             $Type : 'UI.DataField',
-            Value : ticket.description,
+            Value : ticket.comments.text,
             Label : 'Comments',
         },
     ]
